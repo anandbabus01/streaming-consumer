@@ -1,9 +1,14 @@
 package com.ryde
 
-import org.apache.spark.sql.{SparkSession, functions}
-
+import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import org.apache.spark.SparkConf
+import org.apache.spark.sql.{DataFrame, SQLContext, SparkSession, functions}
+import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
+import org.apache.spark.streaming.kafka010.{KafkaUtils, LocationStrategies}
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
+import com.ryde.SaveToCassandra
 
 object Consumer {
 
@@ -11,50 +16,53 @@ object Consumer {
     Logger.getLogger("org").setLevel(Level.ERROR)
     Logger.getLogger("akka").setLevel(Level.ERROR)
 
+    val kafkaParams = Map[String, Object](
+      "bootstrap.servers" -> "INCT-AnandBabu:9092",
+      "key.deserializer" -> "org.apache.kafka.common.serialization.ByteArrayDeserializer",
+      "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
+      "group.id" -> "sample.group",
+      "auto.offset.reset" -> "latest",
+      "enable.auto.commit" -> (false: java.lang.Boolean)
+    )
+    val topics = Array("sample")
+
+    val sparkConf = new SparkConf().setMaster("local[2]")
+                    .setAppName("StreamingConsumer")
+                    .set("spark.cassandra.connection.host", "127.0.0.1")
+//                    .options("spark.driver.allowMultipleContexts", true)
+
     val spark= SparkSession.builder
       .appName("StructuredStream")
       .master("local[2]")
       .getOrCreate()
-import spark.implicits._
+    val sc = spark.sparkContext
+    val streamingContext = new StreamingContext(sc, Seconds(2))
 
-    val smallBatch = spark.read.format("kafka")
-      .option("kafka.bootstrap.servers", "localhost:9092")
-      .option("subscribe", "sample")
-      .option("startingOffsets", "earliest")
-      .option("endingOffsets", """{"sample":{"0":2}}""")
-      .load()
-      .selectExpr("CAST(value AS STRING) as STRING").as[String].toDF()
+    val dStream = KafkaUtils.createDirectStream[String, String](
+      streamingContext,
+      LocationStrategies.PreferConsistent,
+      Subscribe[String, String](topics, kafkaParams)
+    )
 
-    smallBatch.write.mode("overwrite").format("text").save("D:\\work\\test\\sample")
+    val messages = dStream.map(ConsumerRecord => ConsumerRecord.value())
+    import spark.implicits._
 
-    val smallBatchSchema = spark.read.json("/batch/batchName.txt").schema
+    messages.foreachRDD (
+      rdd => {
+//        rdd.foreach(println)
+//        rdd.toDF().printSchema()
+//        rdd.toDF().show(2)
+        val df = spark.sqlContext.read.json(rdd.toDS())
+        df.show(5)
+        df.printSchema()
+        val busDF = df.select("name","business_id", "address")
 
- /*   val inputDf = spark.readStream.format("kafka")
-      .option("kafka.bootstrap.servers", "node:9092")
-      .option("subscribe", "topicName")
-      .option("startingOffsets", "earliest")
-      .load()
+        val saveOb = new SaveToCassandra
+        saveOb.appendToCassandraTableDF(busDF)
 
-    val dataDf = inputDf.selectExpr("CAST(value AS STRING) as json")
-      .select( from_json($"json", schema=smallBatchSchema).as("data"))
-      .select("data.*")*/
+      })
 
-    /*val inputDf = spark
-      .readStream
-      .format("kafka")
-      .option("kafka.bootstrap.servers", "localhost:9092")
-      .option("zookeeper.connect", "localhost:2181")
-      .option("subscribe", "sample")
-      .option("startingOffsets", "earliest")
-      .option("max.poll.records", 10)
-      .option("failOnDataLoss", false)
-      .load()
-inputDf.printSchema()
-    val personJsonDf = inputDf.selectExpr("CAST(value AS STRING)")
-    personJsonDf.printSchema()
-
-    personJsonDf.writeStream
-      .format("console")
-      .start()*/
+    streamingContext.start()
+    streamingContext.awaitTermination()
   }
 }
