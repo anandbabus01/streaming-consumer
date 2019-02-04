@@ -32,17 +32,17 @@
         <version>2.3.0</version>
     </dependency>
 
-    <dependency>
-        <groupId>com.datastax.spark</groupId>
-        <artifactId>spark-cassandra-connector_2.11</artifactId>
-        <version>2.3.0</version>
-    </dependency>
-
     <!-- https://mvnrepository.com/artifact/org.apache.kafka/connect-json -->
     <dependency>
         <groupId>org.apache.kafka</groupId>
         <artifactId>connect-json</artifactId>
         <version>2.1.0</version>
+    </dependency>
+    <!-- https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector -->
+    <dependency>
+        <groupId>com.datastax.spark</groupId>
+        <artifactId>spark-cassandra-connector_2.11</artifactId>
+        <version>2.3.0</version>
     </dependency>
 
 

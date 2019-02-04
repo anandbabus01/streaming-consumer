@@ -17,7 +17,7 @@ object Consumer {
     Logger.getLogger("akka").setLevel(Level.ERROR)
 
     val kafkaParams = Map[String, Object](
-      "bootstrap.servers" -> "INCT-AnandBabu:9092",
+      "bootstrap.servers" -> "localhost:9092",
       "key.deserializer" -> "org.apache.kafka.common.serialization.ByteArrayDeserializer",
       "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
       "group.id" -> "sample.group",
