@@ -7,45 +7,60 @@
     <groupId>streaming-consumer</groupId>
     <artifactId>streaming-consumer</artifactId>
     <version>1.0-SNAPSHOT</version>
-<dependencies>
+
+    <name>sparkStreaming</name>
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spark.version>2.3.0</spark.version>
+    </properties>
+
+    <dependencies>
+   <!-- <dependency>
+        <groupId>org.apache.cassandra</groupId>
+        <artifactId>cassandra-thrift</artifactId>
+        <version>3.11.2</version>
+    </dependency>-->
+
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-streaming_2.11</artifactId>
-        <version>2.3.0</version>
+        <version>${spark.version}</version>
     </dependency>
 
     <!-- https://mvnrepository.com/artifact/org.apache.kafka/kafka -->
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-streaming-kafka-0-10_2.11</artifactId>
-        <version>2.3.0</version>
+        <version>${spark.version}</version>
     </dependency>
     <dependency>
         <groupId>org.apache.spark</groupId>
         <artifactId>spark-sql_2.11</artifactId>
-        <version>2.3.0</version>
+        <version>${spark.version}</version>
     </dependency>
 
-    <dependency>
-        <groupId>org.apache.spark</groupId>
-        <artifactId>spark-sql-kafka-0-10_2.11</artifactId>
-        <version>2.3.0</version>
-    </dependency>
+        <dependency>
+            <groupId>com.datastax.spark</groupId>
+            <artifactId>spark-cassandra-connector_2.11</artifactId>
+            <version>${spark.version}</version>
+        </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.apache.kafka/connect-json -->
-    <dependency>
-        <groupId>org.apache.kafka</groupId>
-        <artifactId>connect-json</artifactId>
-        <version>2.1.0</version>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector -->
-    <dependency>
-        <groupId>com.datastax.spark</groupId>
-        <artifactId>spark-cassandra-connector_2.11</artifactId>
-        <version>2.3.0</version>
-    </dependency>
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.1.32.Final</version>
+        </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.kafka/connect-json -->
+    <!--    <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-json</artifactId>
+            <version>2.1.0</version>
+        </dependency>-->
 
-</dependencies>
+    </dependencies>
 
 </project>
