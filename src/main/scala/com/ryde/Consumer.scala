@@ -58,6 +58,7 @@ object Consumer {
     messages.foreachRDD(
       rdd => {
         val df = spark.read.json(rdd.toDS())
+        df.show(5)
         val saveDf = df.select("business_id", "name", "address","city","state","postal_code","stars" )
         saveOb.appendToCassandraTableDF(saveDf,topics(0))
       })
