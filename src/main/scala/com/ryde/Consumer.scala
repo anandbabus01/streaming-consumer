@@ -44,7 +44,7 @@ object Consumer {
     * Creating Multiple data streams to process the each topic
     * */
 
-    /*val topics = Array("business")
+    val topics = Array("business")
     val dStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       LocationStrategies.PreferConsistent,
@@ -87,10 +87,10 @@ object Consumer {
           val saveCheckInDf = checkInDf.select("business_id", "date")
           saveOb.appendToCassandraTableDF(saveCheckInDf, topic2(0))
         }
-      })*/
+      })
 
     // Creating stream for photo topic
-  /*  val topic3 = Array("photo")
+    val topic3 = Array("photo")
     val photoStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       LocationStrategies.PreferConsistent,
@@ -113,7 +113,7 @@ object Consumer {
           val savephotoDf = photoDf.select("business_id", "caption", "label", "photo_id")
           saveOb.appendToCassandraTableDF(savephotoDf, topic3(0))
         }
-      })*/
+      })
 
     // Creating stream for review topic
     val topic4 = Array("review")
@@ -133,16 +133,13 @@ object Consumer {
         }
         else {
           val reviewDf = spark.read.json(reviewRdd.toDS())
-                  reviewDf.printSchema()
-          reviewDf.show(5)
-          reviewDf.filter("business_id is null").show
+//                  reviewDf.printSchema()
           val saveReviewDf = reviewDf.select("business_id", "cool", "funny", "user_id","stars")
           saveOb.appendToCassandraTableDF(saveReviewDf, topic4(0))
         }
       })
 
     // Creating stream for tip topic
-/*
     val topic5 = Array("tip")
     val tipStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
@@ -165,10 +162,9 @@ object Consumer {
           saveOb.appendToCassandraTableDF(saveTipDf, topic5(0))
         }
       })
-*/
 
     // Creating stream for user topic
-    /*val topic6 = Array("user")
+    val topic6 = Array("user")
     val userStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       LocationStrategies.PreferConsistent,
@@ -191,7 +187,7 @@ object Consumer {
           val saveUserDf = userDf.select("user_id", "name", "review_count", "friends","elite","useful")
           saveOb.appendToCassandraTableDF(saveUserDf, topic6(0))
         }
-      })*/
+      })
     // starting stream pipepine
     streamingContext.start()
     streamingContext.awaitTermination()
