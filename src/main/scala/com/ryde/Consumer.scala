@@ -1,9 +1,6 @@
 package com.ryde
 
-import java.util
-import java.util.ArrayList
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.spark.SparkConf
 import org.apache.spark.sql._
 import org.apache.spark.streaming.kafka010.ConsumerStrategies.Subscribe
@@ -12,8 +9,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
 import com.ryde.SaveToCassandra
-import org.apache.spark.sql.Row
-import org.apache.spark.sql.types.{StructType, StructField, StringType}
+
 
 object Consumer {
 
@@ -33,8 +29,7 @@ object Consumer {
     val sparkConf = new SparkConf().setMaster("local[2]")
       .setAppName("StreamingConsumer")
       .set("spark.cassandra.connection.host", "127.0.0.1")
-    //                    .set("spark.io.compression.codec", "snappy");
-    //                    .options("spark.driver.allowMultipleContexts", true)
+      .set("spark.io.compression.codec", "snappy");
 
     val spark = SparkSession.builder
       .appName("StructuredStream")
@@ -45,7 +40,11 @@ object Consumer {
     val streamingContext = new StreamingContext(sc, Seconds(2))
     val saveOb = new SaveToCassandra
 
-    val topics = Array("business")
+    /*
+    * Creating Multiple data streams to process the each topic
+    * */
+
+    /*val topics = Array("business")
     val dStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       LocationStrategies.PreferConsistent,
@@ -58,7 +57,7 @@ object Consumer {
     messages.foreachRDD(
       rdd => {
         if ((rdd.isEmpty()) && rdd != null) {
-          print("No data received in "+topics(0)+" stream\n")
+          print("No data received in " + topics(0) + " stream\n")
         }
         else {
           val df = spark.read.json(rdd.toDS())
@@ -67,8 +66,8 @@ object Consumer {
           saveOb.appendToCassandraTableDF(saveDf, topics(0))
         }
       })
-
-    val topic2 = Array("checkin") //"photo","review","tip","user")
+    // Creating stream for checkin topic
+    val topic2 = Array("checkin")
     val checkInStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       LocationStrategies.PreferConsistent,
@@ -79,19 +78,19 @@ object Consumer {
 
     checkInMessages.foreachRDD(
       checkInRdd => {
-        if((checkInRdd.isEmpty()) && checkInRdd != null) {
-          print("No data received in "+topic2(0)+" stream\n")
+        if ((checkInRdd.isEmpty()) && checkInRdd != null) {
+          print("No data received in " + topic2(0) + " stream\n")
         }
-        else
-        {
+        else {
           val checkInDf = spark.read.json(checkInRdd.toDS())
           //        checkInDf.printSchema()
           val saveCheckInDf = checkInDf.select("business_id", "date")
           saveOb.appendToCassandraTableDF(saveCheckInDf, topic2(0))
         }
-      })
+      })*/
 
-    val topic3 = Array("photo") //"photo","review","tip","user")
+    // Creating stream for photo topic
+  /*  val topic3 = Array("photo")
     val photoStream = KafkaUtils.createDirectStream[String, String](
       streamingContext,
       LocationStrategies.PreferConsistent,
@@ -101,7 +100,7 @@ object Consumer {
     val photoMessages = photoStream.map(ConsumerRecord => ConsumerRecord.value())
     import spark.implicits._
 
-    photoMessages.foreachRDD (
+    photoMessages.foreachRDD(
       photoRdd => {
         if ((photoRdd.isEmpty()) && photoRdd != null) {
           print("No data received in " + topic3(0) + " stream\n")
@@ -109,12 +108,91 @@ object Consumer {
         else {
           val photoDf = spark.read.json(photoRdd.toDS())
           //        photoDf.printSchema()
+          photoDf.filter("business_id is null").show
+          photoDf.show(5)
           val savephotoDf = photoDf.select("business_id", "caption", "label", "photo_id")
           saveOb.appendToCassandraTableDF(savephotoDf, topic3(0))
         }
+      })*/
+
+    // Creating stream for review topic
+    val topic4 = Array("review")
+    val reviewStream = KafkaUtils.createDirectStream[String, String](
+      streamingContext,
+      LocationStrategies.PreferConsistent,
+      Subscribe[String, String](topic4, kafkaParams)
+    )
+
+    val reviewMessages = reviewStream.map(ConsumerRecord => ConsumerRecord.value())
+    import spark.implicits._
+
+    reviewMessages.foreachRDD(
+      reviewRdd => {
+        if ((reviewRdd.isEmpty()) && reviewRdd != null) {
+          print("No data received in " + topic4(0) + " stream\n")
+        }
+        else {
+          val reviewDf = spark.read.json(reviewRdd.toDS())
+                  reviewDf.printSchema()
+          reviewDf.show(5)
+          reviewDf.filter("business_id is null").show
+          val saveReviewDf = reviewDf.select("business_id", "cool", "funny", "user_id","stars")
+          saveOb.appendToCassandraTableDF(saveReviewDf, topic4(0))
+        }
       })
 
+    // Creating stream for tip topic
+/*
+    val topic5 = Array("tip")
+    val tipStream = KafkaUtils.createDirectStream[String, String](
+      streamingContext,
+      LocationStrategies.PreferConsistent,
+      Subscribe[String, String](topic5, kafkaParams)
+    )
 
+    val tipMessages = tipStream.map(ConsumerRecord => ConsumerRecord.value())
+    import spark.implicits._
+
+    tipMessages.foreachRDD(
+      tipRdd => {
+        if ((tipRdd.isEmpty()) && tipRdd != null) {
+          print("No data received in " + topic5(0) + " stream\n")
+        }
+        else {
+          val tipDf = spark.read.json(tipRdd.toDS())
+          tipDf.printSchema()
+          val saveTipDf = tipDf.select("business_id", "compliment_count", "user_id", "date")
+          saveOb.appendToCassandraTableDF(saveTipDf, topic5(0))
+        }
+      })
+*/
+
+    // Creating stream for user topic
+    /*val topic6 = Array("user")
+    val userStream = KafkaUtils.createDirectStream[String, String](
+      streamingContext,
+      LocationStrategies.PreferConsistent,
+      Subscribe[String, String](topic6, kafkaParams)
+    )
+
+    val userMessages = userStream.map(ConsumerRecord => ConsumerRecord.value())
+    import spark.implicits._
+
+    userMessages.foreachRDD(
+      userRdd => {
+        if ((userRdd.isEmpty()) && userRdd != null) {
+          print("No data received in " + topic6(0) + " stream\n")
+        }
+        else {
+          val userDf = spark.read.json(userRdd.toDS())
+//          userDf.printSchema()
+          userDf.show(5)
+          userDf.filter("user_id is null").show
+          val saveUserDf = userDf.select("user_id", "name", "review_count", "friends","elite","useful")
+          saveOb.appendToCassandraTableDF(saveUserDf, topic6(0))
+        }
+      })*/
+    // starting stream pipepine
     streamingContext.start()
     streamingContext.awaitTermination()
   }
