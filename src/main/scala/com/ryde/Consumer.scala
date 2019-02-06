@@ -90,6 +90,31 @@ object Consumer {
           saveOb.appendToCassandraTableDF(saveCheckInDf, topic2(0))
         }
       })
+
+    val topic3 = Array("photo") //"photo","review","tip","user")
+    val photoStream = KafkaUtils.createDirectStream[String, String](
+      streamingContext,
+      LocationStrategies.PreferConsistent,
+      Subscribe[String, String](topic3, kafkaParams)
+    )
+
+    val photoMessages = photoStream.map(ConsumerRecord => ConsumerRecord.value())
+    import spark.implicits._
+
+    photoMessages.foreachRDD (
+      photoRdd => {
+        if ((photoRdd.isEmpty()) && photoRdd != null) {
+          print("No data received in " + topic3(0) + " stream\n")
+        }
+        else {
+          val photoDf = spark.read.json(photoRdd.toDS())
+          //        photoDf.printSchema()
+          val savephotoDf = photoDf.select("business_id", "caption", "label", "photo_id")
+          saveOb.appendToCassandraTableDF(savephotoDf, topic3(0))
+        }
+      })
+
+
     streamingContext.start()
     streamingContext.awaitTermination()
   }
