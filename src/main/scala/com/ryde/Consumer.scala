@@ -185,7 +185,6 @@ object Consumer {
           print("Data processing for " + topic6(0) + " stream\n")
           val userDf = spark.read.json(userRdd.toDS())
 //          userDf.printSchema()
-          userDf.filter("user_id is null").show
           val saveUserDf = userDf.select("user_id", "name", "review_count", "friends","elite","useful")
           saveOb.appendToCassandraTableDF(saveUserDf, topic6(0))
         }
