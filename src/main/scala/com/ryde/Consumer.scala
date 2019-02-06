@@ -60,8 +60,8 @@ object Consumer {
           print("No data received in " + topics(0) + " stream\n")
         }
         else {
+          print("Data processing for " + topics(0) + " stream\n")
           val df = spark.read.json(rdd.toDS())
-          df.show(5)
           val saveDf = df.select("business_id", "name", "address", "city", "state", "postal_code", "stars")
           saveOb.appendToCassandraTableDF(saveDf, topics(0))
         }
@@ -82,6 +82,7 @@ object Consumer {
           print("No data received in " + topic2(0) + " stream\n")
         }
         else {
+          print("Data processing for " + topic2(0) + " stream\n")
           val checkInDf = spark.read.json(checkInRdd.toDS())
           //        checkInDf.printSchema()
           val saveCheckInDf = checkInDf.select("business_id", "date")
@@ -106,10 +107,9 @@ object Consumer {
           print("No data received in " + topic3(0) + " stream\n")
         }
         else {
+          print("Data processing for " + topic3(0) + " stream\n")
           val photoDf = spark.read.json(photoRdd.toDS())
           //        photoDf.printSchema()
-          photoDf.filter("business_id is null").show
-          photoDf.show(5)
           val savephotoDf = photoDf.select("business_id", "caption", "label", "photo_id")
           saveOb.appendToCassandraTableDF(savephotoDf, topic3(0))
         }
@@ -132,6 +132,7 @@ object Consumer {
           print("No data received in " + topic4(0) + " stream\n")
         }
         else {
+          print("Data processing for " + topic4(0) + " stream\n")
           val reviewDf = spark.read.json(reviewRdd.toDS())
 //                  reviewDf.printSchema()
           val saveReviewDf = reviewDf.select("business_id", "cool", "funny", "user_id","stars")
@@ -156,8 +157,9 @@ object Consumer {
           print("No data received in " + topic5(0) + " stream\n")
         }
         else {
+          print("Data processing for " + topic5(0) + " stream\n")
           val tipDf = spark.read.json(tipRdd.toDS())
-          tipDf.printSchema()
+//          tipDf.printSchema()
           val saveTipDf = tipDf.select("business_id", "compliment_count", "user_id", "date")
           saveOb.appendToCassandraTableDF(saveTipDf, topic5(0))
         }
@@ -180,9 +182,9 @@ object Consumer {
           print("No data received in " + topic6(0) + " stream\n")
         }
         else {
+          print("Data processing for " + topic6(0) + " stream\n")
           val userDf = spark.read.json(userRdd.toDS())
 //          userDf.printSchema()
-          userDf.show(5)
           userDf.filter("user_id is null").show
           val saveUserDf = userDf.select("user_id", "name", "review_count", "friends","elite","useful")
           saveOb.appendToCassandraTableDF(saveUserDf, topic6(0))
