@@ -58,7 +58,7 @@ object Consumer {
     messages.foreachRDD(
       rdd => {
         if ((rdd.isEmpty()) && rdd != null) {
-          print("No data received in stream\n")
+          print("No data received in "+topics(0)+" stream\n")
         }
         else {
           val df = spark.read.json(rdd.toDS())
@@ -67,7 +67,30 @@ object Consumer {
           saveOb.appendToCassandraTableDF(saveDf, topics(0))
         }
       })
-      streamingContext.start()
+
+    val topic2 = Array("checkin") //"photo","review","tip","user")
+    val checkInStream = KafkaUtils.createDirectStream[String, String](
+      streamingContext,
+      LocationStrategies.PreferConsistent,
+      Subscribe[String, String](topic2, kafkaParams)
+    )
+
+    val checkInMessages = checkInStream.map(ConsumerRecord => ConsumerRecord.value())
+
+    checkInMessages.foreachRDD(
+      checkInRdd => {
+        if((checkInRdd.isEmpty()) && checkInRdd != null) {
+          print("No data received in "+topic2(0)+" stream\n")
+        }
+        else
+        {
+          val checkInDf = spark.read.json(checkInRdd.toDS())
+          //        checkInDf.printSchema()
+          val saveCheckInDf = checkInDf.select("business_id", "date")
+          saveOb.appendToCassandraTableDF(saveCheckInDf, topic2(0))
+        }
+      })
+    streamingContext.start()
     streamingContext.awaitTermination()
   }
 
